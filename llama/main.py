@@ -16,25 +16,13 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-def get_env():
-    milvus_uri = os.getenv("MILVUS_RUI", "http://localhost:19530")
-    collection_name = os.getenv("COLLECTION_NAME","collection_name")
-    search_param = os.getenv("SEARCH_PARAM", "search_param" )
 
-    return {
-        "milvus_uri" : milvus_uri,
-        "collection_name": collection_name,
-        "search_param" : search_param
-    }
-def configureMilvus():
-        milvus_uri = os.getenv("MILVUS_URI", "http://localhost:19530")
-        try:
-            client = MilvusClient(uri=milvus_uri)
-            return client
-    
-        except Exception as e:
-            print(f"Failed to create Milvus client:{e}")
-            return None
+
+
+
+     
+     
+
 class SQLQueryRequest(BaseModel):
     sql: str
     limit: int = 10
@@ -43,7 +31,7 @@ class SQLQueryRequest(BaseModel):
     async def root():
         print("Please set the following environment variables:")
         print("milvus_URI, collection_name, vector_embedding, search_param")
-        env_vars = get_env
+        env_vars = Vectorization.get_env()
 
         return {
             "message": "SemanTrino is up and working",
@@ -52,11 +40,12 @@ class SQLQueryRequest(BaseModel):
 
     @app.get("/search")
     async def search(query_data: SQLQueryRequest):
-        original_sql_query
+        original_sql_query = query_data.sql
+        limit = query_data.limit
     
-        env_vars = get_env()
-        client = configureMilvus()
-        embeddings = Vectorization.generateEmbeddings()
-        results = Vectorization.perform_semanticsearch(client,embeddings,env_vars.get("collection_name", env_vars.get("search_param")))
-        
-        return results
+        env_vars = Vectorization.get_env()
+        client = Vectorization.configure_chroma_client()
+        embeddings = Vectorization.generate_embeddings(original_sql_query)
+        results = Vectorization.perform_semantic_search(client,embeddings,env_vars.get("collection_name", env_vars.get("search_param")))
+        reconstructedquery = Vectorization.construct_query(original_sql_query,results)
+        return reconstructedquery
