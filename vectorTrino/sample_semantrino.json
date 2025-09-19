@@ -1,0 +1,19 @@
+{
+  "trino": {
+    "host": "localhost",
+    "port": 8080,
+    "user": "user"
+  },
+  "catalogs": [
+    {
+      "name": "hive",
+      "schema": "tpch",
+      "tables": ["nation", "region", "customer"]
+    }
+  ],
+  "chroma": {
+    "uri": "http://localhost:8000",
+    "metadata_collection_name": "trino_metadata_collection",
+    "rawdata_collection_name": "trino_data_collection"
+  }
+}
